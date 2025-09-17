@@ -2,9 +2,8 @@
 	graph
 	This problem requires you to implement a basic graph functio
 */
-// I AM NOT DONE
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, hash_map::Entry};
 use std::fmt;
 #[derive(Debug, Clone)]
 pub struct NodeNotInGraph;
@@ -30,6 +29,20 @@ impl Graph for UndirectedGraph {
     }
     fn add_edge(&mut self, edge: (&str, &str, i32)) {
         //TODO
+        let (from_node, to_node, weight) = edge;
+
+        self.add_node(from_node);
+        self.add_node(to_node);
+
+        self.adjacency_table_mutable()
+            .get_mut(from_node)
+            .unwrap()
+            .push((to_node.to_string(), weight));
+
+        self.adjacency_table_mutable()
+            .get_mut(to_node)
+            .unwrap()
+            .push((from_node.to_string(), weight));
     }
 }
 pub trait Graph {
@@ -38,10 +51,27 @@ pub trait Graph {
     fn adjacency_table(&self) -> &HashMap<String, Vec<(String, i32)>>;
     fn add_node(&mut self, node: &str) -> bool {
         //TODO
-		true
+        match self.adjacency_table_mutable().entry(node.to_string()) {
+            Entry::Occupied(_) => false,
+            Entry::Vacant(entry) => {
+                entry.insert(Vec::new());
+                true
+            },
+        }
     }
     fn add_edge(&mut self, edge: (&str, &str, i32)) {
         //TODO
+        let (from_node, to_node, weight) = edge;
+        
+        // Ensure both nodes exist
+        self.add_node(from_node);
+        self.add_node(to_node);
+
+        // Add the directed edge from -> to
+        self.adjacency_table_mutable()
+            .get_mut(from_node)
+            .unwrap()
+            .push((to_node.to_string(), weight));
     }
     fn contains(&self, node: &str) -> bool {
         self.adjacency_table().get(node).is_some()
